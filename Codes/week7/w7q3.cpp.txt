@@ -1,0 +1,45 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <mpi.h>
+
+int main(int argc, char* argv[]) {
+    int rank, size;
+    int* arr = NULL;
+    int n = 1000;
+    int local_sum = 0;
+    int total_sum = 0;
+    int local_n;
+
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    local_n = n / size;
+
+    if (rank == 0) {
+        arr = (int*)malloc(n * sizeof(int));
+        for (int i = 0; i < n; i++) {
+            arr[i] = i + 1;
+        }
+    }
+
+    int* local_arr = (int*)malloc(local_n * sizeof(int));
+    MPI_Scatter(arr, local_n, MPI_INT, local_arr, local_n, MPI_INT, 0, MPI_COMM_WORLD);
+
+    for (int i = 0; i < local_n; i++) {
+        local_sum += local_arr[i];
+    }
+
+    MPI_Reduce(&local_sum, &total_sum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+
+    if (rank == 0) {
+        printf("Total sum: %d\n", total_sum);
+        free(arr);
+    }
+
+    free(local_arr);
+
+    MPI_Finalize();
+
+    return 0;
+}
