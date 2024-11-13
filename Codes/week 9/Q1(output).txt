@@ -1,0 +1,2 @@
+Converged after 200 iterations.
+Time taken for parallel Gauss-Seidel: 1.254345 seconds

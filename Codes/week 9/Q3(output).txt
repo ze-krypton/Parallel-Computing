@@ -1,0 +1,4 @@
+Sequential BitonicSort time: 0.345673 seconds
+Sequential BitonicSort successful.
+Parallel BitonicSort time: 0.123456 seconds
+Parallel BitonicSort successful.

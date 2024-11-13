@@ -1,0 +1,83 @@
+When solving systems of linear equations, there are several methods available, each with varying performance characteristics depending on the matrix structure, the size of the system, and the hardware on which the algorithms are run. Below is a comparison of common methods for solving linear systems, focusing on their time complexity, parallelization capabilities, and application to different types of matrices.
+
+### 1. **Gaussian Elimination**
+   - **Time Complexity**: \(O(n^3)\) for an \(n \times n\) matrix.
+   - **Description**: Gaussian elimination is a direct method that involves forward elimination followed by back substitution. It transforms the system into an upper triangular matrix, which is then solved.
+   - **Parallelization**: It can be parallelized, but the process of row operations (forward elimination) introduces dependencies that make full parallelization challenging. There are methods like LU decomposition with parallelization, but the sequential nature of the row reductions can still limit scalability.
+   - **Use Case**: Suitable for small to medium-sized dense matrices. It's a general-purpose method and works well in general, but for large matrices, it becomes computationally expensive.
+   - **Pros**: General method, works for any matrix (non-singular).
+   - **Cons**: High time complexity, not ideal for large sparse matrices.
+
+### 2. **LU Decomposition**
+   - **Time Complexity**: \(O(n^3)\) for an \(n \times n\) matrix.
+   - **Description**: LU decomposition factorizes a matrix \(A\) into a lower triangular matrix \(L\) and an upper triangular matrix \(U\). Once the matrix is decomposed, the system \(Ax = b\) can be solved by first solving \(Ly = b\) and then solving \(Ux = y\).
+   - **Parallelization**: LU decomposition can be parallelized, especially for large systems. However, similar to Gaussian elimination, the dependencies between rows can limit full parallelization.
+   - **Use Case**: Good for solving multiple systems with the same coefficient matrix \(A\) but different right-hand side vectors \(b\).
+   - **Pros**: Efficient when solving multiple systems with the same matrix.
+   - **Cons**: Computationally expensive for large matrices.
+
+### 3. **Jacobi Iteration**
+   - **Time Complexity**: Each iteration is \(O(n^2)\) for an \(n \times n\) matrix.
+   - **Description**: The Jacobi method is an iterative algorithm that approximates the solution by repeatedly solving for each variable using the previous iteration's values.
+   - **Parallelization**: Highly parallelizable, as each update depends only on the previous iteration's values and can be computed independently. It is well-suited for parallel or distributed computing systems.
+   - **Use Case**: Best for large sparse systems, especially those arising in physics simulations and finite element methods.
+   - **Pros**: Simple to implement, highly parallelizable.
+   - **Cons**: Convergence can be slow for certain matrices, especially if the matrix is not diagonally dominant or the spectral radius is large.
+
+### 4. **Gauss-Seidel Iteration**
+   - **Time Complexity**: Each iteration is \(O(n^2)\) for an \(n \times n\) matrix.
+   - **Description**: Gauss-Seidel is an improvement over Jacobi. Instead of using the previous iteration's values for all variables, it uses the updated values as soon as they are computed within the current iteration.
+   - **Parallelization**: More difficult to parallelize than Jacobi, as it introduces dependencies between variables. However, OpenMP or MPI can be used to parallelize certain parts with some modifications.
+   - **Use Case**: More efficient than Jacobi for certain problems, especially when the matrix is diagonally dominant.
+   - **Pros**: Converges faster than Jacobi for many types of matrices.
+   - **Cons**: Limited parallelism due to dependencies between updates.
+
+### 5. **Successive Over-Relaxation (SOR)**
+   - **Time Complexity**: Each iteration is \(O(n^2)\).
+   - **Description**: SOR is a variant of Gauss-Seidel where a relaxation factor is introduced to improve convergence. The idea is to adjust the update by a factor \(\omega\), which can speed up convergence for some matrices.
+   - **Parallelization**: Like Gauss-Seidel, SOR is difficult to parallelize fully, but partial parallelization is possible by updating parts of the system in parallel.
+   - **Use Case**: Efficient for large sparse systems, especially when a good relaxation parameter \(\omega\) is found.
+   - **Pros**: Faster convergence than Gauss-Seidel in some cases.
+   - **Cons**: Convergence depends heavily on the choice of \(\omega\).
+
+### 6. **Conjugate Gradient Method**
+   - **Time Complexity**: \(O(n^2)\) for an \(n \times n\) system, but typically converges in fewer iterations than methods like Jacobi or Gauss-Seidel.
+   - **Description**: The Conjugate Gradient (CG) method is an iterative method that works well for solving large, sparse, symmetric, positive-definite systems. It minimizes the residual over successive iterations.
+   - **Parallelization**: Can be parallelized, particularly for matrix-vector operations.
+   - **Use Case**: Used in large-scale simulations, especially in physical sciences, where the system is sparse and symmetric.
+   - **Pros**: Very efficient for large, sparse, symmetric positive-definite matrices.
+   - **Cons**: Limited to specific types of matrices (symmetric positive-definite).
+
+### 7. **Cholesky Decomposition**
+   - **Time Complexity**: \(O(n^3)\) for an \(n \times n\) matrix.
+   - **Description**: Cholesky decomposition is a direct method specifically used for symmetric, positive-definite matrices. It factorizes the matrix into a lower triangular matrix and its transpose.
+   - **Parallelization**: It can be parallelized effectively due to its regular structure, but is only applicable to positive-definite matrices.
+   - **Use Case**: Often used in numerical optimization, simulations, and inverting matrices in various applications.
+   - **Pros**: Efficient for symmetric positive-definite matrices.
+   - **Cons**: Not applicable for general matrices.
+
+### 8. **Iterative Refinement**
+   - **Time Complexity**: Depends on the method used for the initial solution (e.g., Gaussian elimination, LU decomposition) and the number of refinement steps.
+   - **Description**: Iterative refinement improves the solution of a system after an initial approximate solution is found. It applies iterative methods to reduce errors in the solution.
+   - **Parallelization**: Can be parallelized if the initial solution method is parallelizable.
+   - **Use Case**: Used when high precision is required, especially in numerical applications where the initial solution is approximate.
+   - **Pros**: Can improve the accuracy of a solution significantly with a small amount of extra computation.
+   - **Cons**: Requires an initial approximation and additional iterations.
+
+### Performance Comparison
+
+| Method                     | Time Complexity       | Parallelization     | Best for                     | Limitations                         |
+|----------------------------|-----------------------|---------------------|------------------------------|--------------------------------------|
+| Gaussian Elimination        | \(O(n^3)\)            | Partial             | General-purpose              | Slow for large systems              |
+| LU Decomposition            | \(O(n^3)\)            | Partial             | Multiple right-hand sides    | Expensive for large matrices        |
+| Jacobi Iteration            | \(O(n^2)\) per iteration | High                | Large sparse systems         | Slow convergence for some matrices  |
+| Gauss-Seidel Iteration      | \(O(n^2)\) per iteration | Moderate            | Diagonally dominant matrices | Limited parallelism                 |
+| Successive Over-Relaxation  | \(O(n^2)\) per iteration | Moderate            | Sparse systems, optimized convergence | Needs good relaxation factor    |
+| Conjugate Gradient          | \(O(n^2)\)            | High                | Sparse symmetric positive-definite matrices | Limited to specific matrix types   |
+| Cholesky Decomposition      | \(O(n^3)\)            | High                | Symmetric positive-definite matrices | Not for general matrices            |
+| Iterative Refinement       | Depends on method     | High                | High-precision applications  | Requires initial approximation      |
+
+### Conclusion:
+- **Direct Methods (Gaussian Elimination, LU Decomposition, Cholesky)** are best for small to medium-sized dense systems but become computationally expensive as the matrix size grows.
+- **Iterative Methods (Jacobi, Gauss-Seidel, SOR, Conjugate Gradient)** are more efficient for large, sparse systems, with **Conjugate Gradient** being the most efficient for symmetric positive-definite systems.
+- **Parallelization**: Iterative methods like Jacobi and Conjugate Gradient are highly parallelizable, while direct methods have limited parallelization potential due to their inherent dependencies.

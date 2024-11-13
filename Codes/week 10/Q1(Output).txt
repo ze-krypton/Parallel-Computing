@@ -1,0 +1,4 @@
+Sequential QuickSort time: X.XXXXXX seconds
+Sequential QuickSort successful.
+Parallel QuickSort time: Y.YYYYYY seconds
+Parallel QuickSort successful.
